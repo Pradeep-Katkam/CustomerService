@@ -1,5 +1,6 @@
 package com.alpha.CustomerService.Entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,18 +12,22 @@ public class Customer {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int id;
 	private String name;
+	@Column(unique = true)
 	private long mobile;
+	@Column(unique = true)
 	private String email;
-	private int otp;
+	private String gender;
+	private String otp;
 	public Customer() {
 		super();
 	}
-	public Customer(int id, String name, long mobile, String email, int otp) {
+	public Customer(int id, String name, long mobile, String email, String gender, String otp) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.mobile = mobile;
 		this.email = email;
+		this.gender = gender;
 		this.otp = otp;
 	}
 	public int getId() {
@@ -49,10 +54,16 @@ public class Customer {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	public int getOtp() {
+	public String getGender() {
+		return gender;
+	}
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+	public String getOtp() {
 		return otp;
 	}
-	public void setOtp(int otp) {
+	public void setOtp(String otp) {
 		this.otp = otp;
 	}
 	
