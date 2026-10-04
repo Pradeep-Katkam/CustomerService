@@ -58,21 +58,25 @@ public class RedisService {
 		return redisTemplate.opsForHash().entries(key);
 	}
 
-	public List<String> findNearbyCustomers(int riderId, String vehicleType, double radiusKm) {
-		String riderKey = "vehicle:" + vehicleType.toUpperCase() + ":locations";
+//	Remaining vehicle fare is removed to identify this customer is booked for bike or auto or cab
+	public void removeOtherFares(long custId, String vehicle) {
 
-		List<Point> points = redisTemplate.opsForGeo().position(riderKey, "rider:" + riderId);
+	    String key = "custId_" + custId + ":details";
 
-		if (points == null || points.isEmpty() || points.get(0) == null)
-			return List.of();
+	    if (vehicle.equalsIgnoreCase("BIKE")) {
 
-		Circle circle = new Circle(points.get(0), new Distance(radiusKm, Metrics.KILOMETERS));
+	        redisTemplate.opsForHash().delete(key, "autoPrice", "cabPrice");
 
-		GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo()
-				.radius("customer:locations", circle);
+	    } else if (vehicle.equalsIgnoreCase("AUTO")) {
 
-		return results.getContent().stream().map(result -> result.getContent().getName()).toList();
+	        redisTemplate.opsForHash().delete(key, "bikePrice", "cabPrice");
+
+	    } else if (vehicle.equalsIgnoreCase("CAB")) {
+
+	        redisTemplate.opsForHash().delete(key, "bikePrice", "autoPrice");
+	    }
 	}
+
 
 	public List<String> findNearbyRiders(long custId, String vehicleType, double radiusKm) {
 		String customerKey = "custId_" + custId + ":locations";

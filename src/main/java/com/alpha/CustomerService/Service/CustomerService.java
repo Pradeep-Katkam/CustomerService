@@ -256,6 +256,8 @@ public class CustomerService {
 		        fare = autoPrice;
 		    else if (vehicle.equalsIgnoreCase("CAB"))
 		        fare = cabPrice;
+//		Removing the fareprice of remaing to identify uniquely    
+		    redisserver.removeOtherFares(custId,vehicle);
 		    
 //		Source Cordinates
 		    Cordinate source = new Cordinate();
