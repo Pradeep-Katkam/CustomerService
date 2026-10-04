@@ -49,7 +49,7 @@ public class CustomerController {
 	}
 	
 	@PostMapping("/customer/Booking")
-	public ResponceStructure<Booking> BookRide(@RequestParam int custId, String vehicle, String paymentType) {
-		return customerService.bookRide(custId,vehicle,paymentType);
+	public ResponceStructure<List<String>> BookRide(@RequestParam int custId, String vehicle) {
+		return customerService.bookRide(custId,vehicle);
 	}
-}
+} 

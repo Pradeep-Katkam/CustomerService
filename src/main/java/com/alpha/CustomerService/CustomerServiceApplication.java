@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
+import com.alpha.CustomerService.Service.RedisService;
+
 @SpringBootApplication
 public class CustomerServiceApplication {
 
@@ -15,4 +17,5 @@ public class CustomerServiceApplication {
 	public RestTemplate rest() {
 		return new RestTemplate();
 	}
+
 }

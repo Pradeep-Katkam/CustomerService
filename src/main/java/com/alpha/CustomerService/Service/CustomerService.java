@@ -1,6 +1,13 @@
 package com.alpha.CustomerService.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Metrics;
+import org.springframework.data.geo.Point;
+import org.springframework.data.redis.core.StringRedisTemplate;
+
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +30,7 @@ import com.alpha.CustomerService.Entity.Booking;
 import com.alpha.CustomerService.Entity.Cordinate;
 import com.alpha.CustomerService.Entity.Customer;
 import com.alpha.CustomerService.Exception.CustomerNotExist;
+import com.alpha.CustomerService.Exception.RIdeDetailNotFoundInRedis;
 import com.alpha.CustomerService.Repository.BookingRepository;
 import com.alpha.CustomerService.Repository.Cardinationrepository;
 import com.alpha.CustomerService.Repository.CustomerRepositor;
@@ -35,7 +43,8 @@ public class CustomerService {
 	private Cardinationrepository cardinationrepository;
 	@Autowired
 	private RedisService redisserver;
-	
+	@Autowired
+	private StringRedisTemplate redisTemplate;
 	@Autowired
 	private BookingRepository bookingRepository;
 
@@ -133,8 +142,12 @@ public class CustomerService {
 			double bikePrice = calculateFare(Fairprice.BIKE, distance, duration);
 	        double autoPrice = calculateFare(Fairprice.AUTO, distance, duration);
 	        double cabPrice = calculateFare(Fairprice.CAB, distance, duration);
-	        List<Double> coordinates = Arrays.asList(selectRideDTO.getSourcelocation().getLatitude(), selectRideDTO.getSourcelocation().getLongitude(), selectRideDTO.getDestinationlocation().getLatitude(), selectRideDTO.getDestinationlocation().getLongitude());
-	        
+	        List<Double> coordinates = Arrays.asList(
+	        	    selectRideDTO.getSourcelocation().getLatitude(),
+	        	    selectRideDTO.getSourcelocation().getLongitude(),
+	        	    selectRideDTO.getDestinationlocation().getLatitude(),
+	        	    selectRideDTO.getDestinationlocation().getLongitude()
+	        	);	        
 	        
 	  // To get the location name And detination location name   
 	        String pickupUrl ="https://us1.locationiq.com/v1/reverse?key=pk.ee69342003ac6bc7ebb859fb52baf933&lat="+selectRideDTO.getSourcelocation().getLatitude()+
@@ -154,7 +167,7 @@ public class CustomerService {
 	        String destinationLocation = (String) address2.get("suburb");
 	        
 	    // Adding Details into the redis
-	        redisserver.saveRideDetails(custId, coordinates,pickupLocation,  destinationLocation, distance, duration, bikePrice, autoPrice,cabPrice);
+	        redisserver.saveRideDetails(custId,selectRideDTO.getSourcelocation().getLongitude(),selectRideDTO.getSourcelocation().getLatitude(), selectRideDTO.getDestinationlocation().getLongitude(),selectRideDTO.getDestinationlocation().getLatitude(),pickupLocation,  destinationLocation,distance,  duration,  bikePrice, autoPrice,cabPrice);
 	        	 
 	    // Giving the responce Structure 
 	        ResponceStructure<FairPriceAllVehicles> rs = new ResponceStructure<FairPriceAllVehicles>();
@@ -181,6 +194,7 @@ public class CustomerService {
 		}
 	
 	
+//	Fare Prices calculating for each Vehicle 
 	
 		private double calculateFare(Fairprice vehicle,double distance,double duration) {
 		    double baseFare = 0;
@@ -208,69 +222,77 @@ public class CustomerService {
 
 		    return baseFare+ (distance * pricePerKm)+ (duration * pricePerMinute);
 		}
+		
+		
+//     Getting the data from the Redis, In Separate for riderDetail in hash format and Separate for Geo Points which are in the same folder
+		public ResponceStructure<List<String>> bookRide(int custId, String vehicle) {
+		    Customer customer = customerRepositor.findById(custId).orElseThrow(() -> new CustomerNotExist());
 
-		public ResponceStructure<Booking> bookRide(int custId, String vehicle,String paymentType) {
-
-		    Customer c = customerRepositor.findById(custId).orElseThrow(() -> new CustomerNotExist());
+//		    Getting rider data From Redis
 		    Map<Object, Object> rideData = redisserver.getRideDetails(custId);
-		    System.out.println("Redis Data = " + rideData);
-		    System.out.println("Redis Keys = " + rideData.keySet());
-		    if(rideData == null) {
-		    	new CustomerNotExist();
+//		    Getting rider Source And Destination Locations From Redis
+		    List<Point> points = redisTemplate.opsForGeo().position(
+		                "custId_"+custId+":locations",
+		                "source",
+		                "destination"
+		            );
+		    if (rideData.isEmpty() || points.isEmpty()) {
+		        throw new RIdeDetailNotFoundInRedis();
 		    }
-		    String pickupLocation = (String) rideData.get("pickupLocation");
-		    String destinationLocation = (String) rideData.get("destinationLocation");
+//		    Source LOcation
+		    Point SourcePoints = points.get(0);
+//		    Destination Location
+		    Point DestinationPoints = points.get(1);
 
-		    List<Double> coordinates = Arrays.stream(rideData.get("coordinates").toString().replace("[", "").replace("]", "").split(",")).map(Double::parseDouble).toList();
 
+//			Vehicle Prices And Set Fare Price According To the Choosen Vehicle
 		    double bikePrice = Double.parseDouble((String) rideData.get("bikePrice"));
 		    double autoPrice = Double.parseDouble((String) rideData.get("autoPrice"));
 		    double cabPrice = Double.parseDouble((String) rideData.get("cabPrice"));
-
 		    double fare = 0;
-
-		    if (vehicle.equalsIgnoreCase("BIKE")) {
+		    if (vehicle.equalsIgnoreCase("BIKE"))
 		        fare = bikePrice;
-		    } else if (vehicle.equalsIgnoreCase("AUTO")) {
+		    else if (vehicle.equalsIgnoreCase("AUTO"))
 		        fare = autoPrice;
-		    } else if (vehicle.equalsIgnoreCase("CAB")) {
+		    else if (vehicle.equalsIgnoreCase("CAB"))
 		        fare = cabPrice;
-		    }
-
+		    
+//		Source Cordinates
 		    Cordinate source = new Cordinate();
-		    source.setLatitude(coordinates.get(0));
-		    source.setLongitude(coordinates.get(1));
-
+		    source.setLongitude(SourcePoints.getX());
+		    source.setLatitude(SourcePoints.getY());
+//		Detination Cordinates
 		    Cordinate destination = new Cordinate();
-		    destination.setLatitude(coordinates.get(2));
-		    destination.setLongitude(coordinates.get(3));
+		    destination.setLongitude(DestinationPoints.getX());
+		    destination.setLatitude(DestinationPoints.getY());
+//		Location Names	    	
+		    String pickupLocationName=(String)rideData.get("pickupLocation");
+		    String destinationLocationName=(String)rideData.get("destinationLocation");
 		    
-		    
+//		    Saving the data into the Booking Object
 		    Booking b = new Booking();
-
-		    b.setCustomer(c);
-		    b.setPickupLoc(pickupLocation);
-		    b.setDestinationLoc(destinationLocation);
+		    b.setCustomer(customer);
+		    b.setPickupLoc(pickupLocationName);
+		    b.setDestinationLoc(destinationLocationName);
 		    b.setSourceCordinate(source);
 		    b.setDesCordinate(destination);
 		    b.setVechicType(vehicle);
-		    b.setPaymentType(paymentType);
 		    b.setFare(fare);
-		    
 		    LocalDate date = LocalDate.now();
-		    LocalTime time = LocalTime.now();	    
+		    LocalTime time = LocalTime.now();
 		    b.setBookingdate(date.toString());
 		    b.setBookingtime(time.toString());
-
 		    bookingRepository.save(b);
-		    
-		    ResponceStructure<Booking> rs = new ResponceStructure<Booking>();
+
+//		    Showing the near by Rider for the Customer
+		    List<String> s = redisserver.findNearbyRiders(custId, vehicle, 10);
+		    System.out.println("Nearby Riders = " + s);
+
+		    ResponceStructure<List<String>> rs = new ResponceStructure<List<String>>();
 		    rs.setStatusCode(HttpStatus.CREATED.value());
 		    rs.setMessage("Successfully Ride as Booked");
-		    rs.setData(b);
+		    rs.setData(s);
+
 		    return rs;
 		}
-		
-		
-		
 }
