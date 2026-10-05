@@ -50,6 +50,6 @@ public class CustomerController {
 	
 	@PostMapping("/customer/Booking")
 	public ResponceStructure<List<String>> BookRide(@RequestParam int custId, String vehicle) {
-		return customerService.bookRide(custId,vehicle);
+		return customerService.confirmRide(custId,vehicle);
 	}
 } 
