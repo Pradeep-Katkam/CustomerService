@@ -71,4 +71,9 @@ public class CustomerController {
 		return customerService.ReturningBookingObject(bookingid);
 	}
 	
+	@PutMapping("customer/cancelRide")
+	public void CancelRide(@RequestParam int bookingid ) {
+		customerService.CancelRide(bookingid);
+	}
+	
 } 
