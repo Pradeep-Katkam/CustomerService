@@ -102,9 +102,9 @@ public class RedisService {
 		return results.getContent().stream().map(result -> result.getContent().getName()).toList();
 	}
 
-	public void saveRideRequest(String rider, int bookingId, long custId, double distance, double duration, String otp, String vehicle) {
+	public void AssigningRidesForRider(String riderID, int bookingId, long custId, double distance, double duration, String otp, String vehicle) {
 
-	    String rideKey = "AssignedRide_for_" + rider + ":" + bookingId;
+	    String rideKey = "AssignedRide_for_" + riderID + ":" + bookingId;
 
 	    redisTemplate.opsForHash().put(rideKey, "bookingId", String.valueOf(bookingId));
 	    redisTemplate.opsForHash().put(rideKey, "customerId", String.valueOf(custId));

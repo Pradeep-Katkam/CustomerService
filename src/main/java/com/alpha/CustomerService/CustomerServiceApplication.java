@@ -14,7 +14,7 @@ public class CustomerServiceApplication {
 		SpringApplication.run(CustomerServiceApplication.class, args);
 	}
 	@Bean
-	public RestTemplate rest() {
+	public RestTemplate rest() { 
 		return new RestTemplate();
 	}
 
