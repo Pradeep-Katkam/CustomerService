@@ -102,9 +102,25 @@ public class RedisService {
 		return results.getContent().stream().map(result -> result.getContent().getName()).toList();
 	}
 
+	public void saveRideRequest(String rider, int bookingId, long custId, double distance, double duration, String otp, String vehicle) {
+
+	    String rideKey = "ride:" + bookingId;
+
+	    redisTemplate.opsForHash().put(rideKey, "bookingId", String.valueOf(bookingId));
+	    redisTemplate.opsForHash().put(rideKey, "customerId", String.valueOf(custId));
+	    redisTemplate.opsForHash().put(rideKey, "distance", String.valueOf(distance));
+	    redisTemplate.opsForHash().put(rideKey, "duration", String.valueOf(duration));
+	    redisTemplate.opsForHash().put(rideKey, "otp", String.valueOf(otp));
+	    redisTemplate.opsForHash().put(rideKey, "vehicle", String.valueOf(vehicle));
+
+	    String riderKey = "rider:" + rider + ":requests";
+
+	    redisTemplate.opsForHash().put(riderKey, String.valueOf(bookingId), "ride:" + bookingId);
+	}
 	public Point getCustomerLocation(int custId, String string) {
 		Point customerLocation = getCustomerLocation(custId, "customers:locations");
 		return customerLocation;
 	}
+
 
 }
