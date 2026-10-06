@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.alpha.CustomerService.Dto.CustomerDto;
 import com.alpha.CustomerService.Dto.FairPriceAllVehicles;
 import com.alpha.CustomerService.Dto.ResponceStructure;
+import com.alpha.CustomerService.Dto.ReturningBookingObjectDto;
 import com.alpha.CustomerService.Dto.RidefairDTO;
 import com.alpha.CustomerService.Dto.SearchDestinationResponeDto;
 import com.alpha.CustomerService.Dto.SelectRideDTO;
@@ -61,7 +63,12 @@ public class CustomerController {
 	
 	@PutMapping("/booking/{bookingId}/assignRider/{riderId}") 
 	public ResponceStructure<Booking> assignRider(@PathVariable int bookingId,@PathVariable int riderId) {
-
-	    return customerService.saveRiderIdInBooking(bookingId,riderId);
+		return customerService.saveRiderIdInBooking(bookingId,riderId);
 	}
+	
+	@GetMapping("/customer/returningBooking")
+	public ReturningBookingObjectDto getBookingObject (@RequestParam int bookingid) {
+		return customerService.ReturningBookingObject(bookingid);
+	}
+	
 } 
