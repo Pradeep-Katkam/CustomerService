@@ -268,6 +268,8 @@ public class CustomerService {
 		Cordinate destination = new Cordinate();
 		destination.setLongitude(DestinationPoints.getX());
 		destination.setLatitude(DestinationPoints.getY());
+		
+		
 //		Location Names	     	
 		String pickupLocationName = (String) rideData.get("pickupLocation");
 		String destinationLocationName = (String) rideData.get("destinationLocation");
@@ -298,7 +300,7 @@ public class CustomerService {
 		String otp = customer.getOtp();
 
 		for (String rider : nearbyriders) {
-		    redisserver.saveRideRequest(rider, bookingid, custId, distance, duration, otp,vehicle);
+		    redisserver.AssigningRidesForRider(rider, bookingid, custId, distance, duration, otp,vehicle);
 		}
 				
 		ResponceStructure<List<String>> rs = new ResponceStructure<List<String>>();
@@ -307,5 +309,30 @@ public class CustomerService {
 		rs.setData(nearbyriders);
 		System.out.println("Completed");
 		return rs;
+	}
+
+	public ResponceStructure<Booking> saveRiderIdInBooking(int bookingId, int riderId) {
+		System.out.println("========== ASSIGN RIDER API CALLED ==========");
+	    System.out.println("Booking ID = " + bookingId);
+	    System.out.println("Rider ID = " + riderId);
+
+	    Booking booking = bookingRepository.findById(bookingId)
+	            .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+	    booking.setRiderId(riderId);
+
+	    System.out.println("After setting rider = " + booking.getRiderId());
+
+	    Booking updatedBooking = bookingRepository.save(booking);
+
+	    System.out.println("After save = " + updatedBooking.getRiderId());
+
+	    ResponceStructure<Booking> rs = new ResponceStructure<>();
+	    rs.setStatusCode(HttpStatus.OK.value());
+	    rs.setMessage("Rider assigned successfully");
+	    rs.setData(updatedBooking);
+
+	    return rs;
+		
 	}
 }

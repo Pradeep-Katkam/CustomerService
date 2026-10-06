@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +27,7 @@ public class Booking {
 	private Cordinate sourceCordinate;
 	private String paymentType;
 	private String vechicType;
+	@Column(name = "rider_id")
 	private int riderId;
 	private String bookingdate;
 	private String bookingtime;
