@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,12 +24,14 @@ import com.alpha.CustomerService.Dto.CustomerDto;
 import com.alpha.CustomerService.Dto.FairPriceAllVehicles;
 import com.alpha.CustomerService.Dto.Fairprice;
 import com.alpha.CustomerService.Dto.ResponceStructure;
+import com.alpha.CustomerService.Dto.ReturningBookingObjectDto;
 import com.alpha.CustomerService.Dto.RidefairDTO;
 import com.alpha.CustomerService.Dto.SearchDestinationResponeDto;
 import com.alpha.CustomerService.Dto.SelectRideDTO;
 import com.alpha.CustomerService.Entity.Booking;
 import com.alpha.CustomerService.Entity.Cordinate;
 import com.alpha.CustomerService.Entity.Customer;
+import com.alpha.CustomerService.Exception.BookingObjectNotFoundException;
 import com.alpha.CustomerService.Exception.CustomerNotExist;
 import com.alpha.CustomerService.Exception.RIdeDetailNotFoundInRedis;
 import com.alpha.CustomerService.Repository.BookingRepository;
@@ -236,7 +239,7 @@ public class CustomerService {
 		List<Point> points = redisTemplate.opsForGeo().position("custId_" + custId + ":locations", "source",
 				"destination");
 		if (rideData.isEmpty() || points.isEmpty()) {
-			throw new RIdeDetailNotFoundInRedis();  
+			throw new RIdeDetailNotFoundInRedis();
 		}
 //		    Source LOcation
 		Point SourcePoints = points.get(0);
@@ -244,16 +247,15 @@ public class CustomerService {
 		Point DestinationPoints = points.get(1);
 
 //			Vehicle Prices And Set Fare Price According To the Choosen Vehicle
-		
-		
-				double fare = 0;
+
+		double fare = 0;
 		if (vehicle.equalsIgnoreCase("BIKE")) {
 			double bikePrice = Double.parseDouble((String) rideData.get("bikePrice"));
 			fare = bikePrice;
-		}else if (vehicle.equalsIgnoreCase("AUTO")) {
+		} else if (vehicle.equalsIgnoreCase("AUTO")) {
 			double autoPrice = Double.parseDouble((String) rideData.get("autoPrice"));
 			fare = autoPrice;
-		}else if (vehicle.equalsIgnoreCase("CAB")) {
+		} else if (vehicle.equalsIgnoreCase("CAB")) {
 			double cabPrice = Double.parseDouble((String) rideData.get("cabPrice"));
 			fare = cabPrice;
 		}
@@ -268,8 +270,7 @@ public class CustomerService {
 		Cordinate destination = new Cordinate();
 		destination.setLongitude(DestinationPoints.getX());
 		destination.setLatitude(DestinationPoints.getY());
-		
-		
+
 //		Location Names	     	
 		String pickupLocationName = (String) rideData.get("pickupLocation");
 		String destinationLocationName = (String) rideData.get("destinationLocation");
@@ -287,22 +288,22 @@ public class CustomerService {
 		LocalTime time = LocalTime.now();
 		b.setBookingdate(date.toString());
 		b.setBookingtime(time.toString());
-		Booking newbooking=bookingRepository.save(b);
+		Booking newbooking = bookingRepository.save(b);
 
 //		    Showing the near by Rider for the Customer
 		List<String> nearbyriders = redisserver.findNearbyRiders(custId, vehicle, 10);
 		System.out.println("Nearby Riders = " + nearbyriders);
-		
-		// push the ride info for these riders on redis 
+
+		// push the ride info for these riders on redis
 		int bookingid = newbooking.getId();
 		Double distance = Double.parseDouble((String) rideData.get("distance"));
 		Double duration = Double.parseDouble((String) rideData.get("duration"));
 		String otp = customer.getOtp();
 
 		for (String rider : nearbyriders) {
-		    redisserver.AssigningRidesForRider(rider, bookingid, custId, distance, duration, otp,vehicle);
+			redisserver.AssigningRidesForRider(rider, bookingid, custId, distance, duration, otp, vehicle);
 		}
-				
+
 		ResponceStructure<List<String>> rs = new ResponceStructure<List<String>>();
 		rs.setStatusCode(HttpStatus.CREATED.value());
 		rs.setMessage("Successfully Ride as Booked");
@@ -312,27 +313,45 @@ public class CustomerService {
 	}
 
 	public ResponceStructure<Booking> saveRiderIdInBooking(int bookingId, int riderId) {
-		System.out.println("========== ASSIGN RIDER API CALLED ==========");
-	    System.out.println("Booking ID = " + bookingId);
-	    System.out.println("Rider ID = " + riderId);
+		Booking booking = bookingRepository.findById(bookingId)
+				.orElseThrow(() -> new RuntimeException("Booking not found: " + bookingId));
 
-	    Booking booking = bookingRepository.findById(bookingId)
-	            .orElseThrow(() -> new RuntimeException("Booking not found"));
+		booking.setRiderId(riderId);
+		Booking b = bookingRepository.save(booking);
 
-	    booking.setRiderId(riderId);
+		bookingRepository.save(booking);
+		ResponceStructure<Booking> rs = new ResponceStructure<Booking>();
+		rs.setStatusCode(HttpStatus.OK.value());
+		rs.setMessage("Rider added to booking");
+		rs.setData(b);
+		return rs;
+	}
 
-	    System.out.println("After setting rider = " + booking.getRiderId());
+	public ReturningBookingObjectDto ReturningBookingObject(int bookingid) {
+		Booking b = bookingRepository.findById(bookingid).orElseThrow(() -> new BookingObjectNotFoundException());
+		ReturningBookingObjectDto r = new ReturningBookingObjectDto();
+		r.setDestinationLoc(b.getDestinationLoc());
+		r.setPickupLoc(b.getPickupLoc());
+		r.setDesCordinate(b.getDesCordinate());
+		r.setSourceCordinate(b.getSourceCordinate());
+		r.setRiderId(b.getRiderId());
+		r.setBookingdate(b.getBookingdate());
+		r.setDropTime(b.getDropTime());
+		r.setFare(b.getFare());
+		r.setStatus(b.getStatus());
+		r.setDestinationLoc(b.getDestinationLoc());
 
-	    Booking updatedBooking = bookingRepository.save(booking);
+		return r;
+	}
 
-	    System.out.println("After save = " + updatedBooking.getRiderId());
-
-	    ResponceStructure<Booking> rs = new ResponceStructure<>();
-	    rs.setStatusCode(HttpStatus.OK.value());
-	    rs.setMessage("Rider assigned successfully");
-	    rs.setData(updatedBooking);
-
-	    return rs;
-		
+	public ResponceStructure<Booking> updateBookingStatus(int bookingid ,String status) {
+		Booking booking = bookingRepository.findById(bookingid).orElseThrow(() -> new RuntimeException("Booking not found: " + bookingid));
+		booking.setStatus(status);
+		Booking updatedBooking = bookingRepository.save(booking);
+		ResponceStructure<Booking> response = new ResponceStructure<>();
+		response.setStatusCode(200);
+		response.setMessage("Booking status updated successfully");
+		response.setData(updatedBooking);
+		return response;
 	}
 }

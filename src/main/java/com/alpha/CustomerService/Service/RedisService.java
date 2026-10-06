@@ -71,7 +71,7 @@ public class RedisService {
 
 	        redisTemplate.opsForHash().delete(key, "bikePrice", "cabPrice");
 
-	    } else if (vehicle.equalsIgnoreCase("CAR")) {
+	    } else if (vehicle.equalsIgnoreCase("CAB")) {
 
 	        redisTemplate.opsForHash().delete(key, "bikePrice", "autoPrice");
 	    }
@@ -80,7 +80,7 @@ public class RedisService {
 
 	public List<String> findNearbyRiders(long custId, String vehicleType, double radiusKm) {
 		String customerKey = "custId_" + custId + ":locations";
-		String riderKey = "vehicle:" + vehicleType.trim().toLowerCase() + ":locations";
+		String riderKey = "vehicle:" + vehicleType.trim().toUpperCase() + ":locations";
 		System.out.println("Customer GEO Key = " + customerKey);
 		System.out.println("Rider GEO Key = " + riderKey);
 		List<Point> points = redisTemplate.opsForGeo().position(customerKey, "source");
