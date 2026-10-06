@@ -74,6 +74,7 @@ public class CustomerController {
 	public ReturningBookingObjectDto getBookingObject(@RequestParam int bookingid) {
 		return customerService.ReturningBookingObject(bookingid);
 	}
+<<<<<<< HEAD
 
 	@PutMapping("/customer/booking/{bookingid}/status")
 	public ResponceStructure<Booking> updateBookingStatus(@PathVariable int bookingid, @RequestParam String status) {
@@ -81,3 +82,12 @@ public class CustomerController {
 	}
 
 }
+=======
+	
+	@PutMapping("customer/cancelRide")
+	public void CancelRide(@RequestParam int bookingid ) {
+		customerService.CancelRide(bookingid);
+	}
+	
+} 
+>>>>>>> 47a140b5c6d561e3e2a6a80c6e6cf8392e73f3e0

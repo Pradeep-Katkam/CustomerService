@@ -1,5 +1,6 @@
 package com.alpha.CustomerService.Service;
 
+import java.awt.print.Book;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -341,6 +342,7 @@ public class CustomerService {
 		r.setStatus(b.getStatus());
 		r.setDestinationLoc(b.getDestinationLoc());
 
+<<<<<<< HEAD
 		return r;
 	}
 
@@ -354,4 +356,42 @@ public class CustomerService {
 		response.setData(updatedBooking);
 		return response;
 	}
+=======
+		public ReturningBookingObjectDto ReturningBookingObject(int bookingid) {
+			Booking b=bookingRepository.findById(bookingid).orElseThrow(()-> new BookingObjectNotFoundException());
+			ReturningBookingObjectDto r = new ReturningBookingObjectDto();
+			r.setDestinationLoc(b.getDestinationLoc());
+			r.setPickupLoc(b.getPickupLoc());
+			r.setDesCordinate(b.getDesCordinate());
+			r.setSourceCordinate(b.getSourceCordinate());
+			r.setRiderId(b.getRiderId());
+			r.setBookingdate(b.getBookingdate());
+			r.setDropTime(b.getDropTime());
+			r.setFare(b.getFare());
+			r.setStatus(b.getStatus());
+			r.setDestinationLoc(b.getDestinationLoc());
+			
+			return r;
+		}
+
+		public void CancelRide(int bookingid) {
+			Booking b = bookingRepository.findById(bookingid).orElseThrow(()-> new BookingObjectNotFoundException());
+			
+			ResponceStructure<Booking> rs = new ResponceStructure<Booking>();
+			if(b.getStatus().equalsIgnoreCase("confirmed") || b.getStatus().equalsIgnoreCase("riderAssigned")) {
+				b.setStatus("cancel");
+				bookingRepository.save(b);
+				rs.setStatusCode(HttpStatus.ACCEPTED.value());
+				rs.setMessage("Ride Successfully Cancelled");
+				rs.setData(b);
+			}else if(b.getStatus().equalsIgnoreCase("started")) {
+				System.out.println("Cannot Cancel Ride");
+				rs.setStatusCode(HttpStatus.UNPROCESSABLE_CONTENT.value());
+				rs.setMessage("Ride Cannot Cancelled, While you in Ride");
+				rs.setData(null);
+			}
+			
+			
+		}
+>>>>>>> 47a140b5c6d561e3e2a6a80c6e6cf8392e73f3e0
 }
