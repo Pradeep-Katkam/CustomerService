@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alpha.CustomerService.Dto.CompleteRideDTO;
 import com.alpha.CustomerService.Dto.CustomerDto;
 import com.alpha.CustomerService.Dto.FairPriceAllVehicles;
 import com.alpha.CustomerService.Dto.ResponceStructure;
@@ -80,6 +81,7 @@ public class CustomerController {
 		return customerService.updateBookingStatus(bookingid, status);
 	}
 
+<<<<<<< HEAD
 	
 	@PutMapping("customer/cancelRide")
 	public void CancelRide(@RequestParam int bookingid ) {
@@ -87,3 +89,16 @@ public class CustomerController {
 	}
 	
 } 
+=======
+	@PutMapping("/customer/cancelRide")
+	public void CancelRide(@RequestParam int bookingid) {
+		customerService.CancelRide(bookingid);
+	}
+
+	@PutMapping("/customer/rideComplete")
+	public ResponceStructure<CompleteRideDTO> completeRide(@RequestParam int bookingid) {
+		return customerService.RideCompleted(bookingid);
+	}
+
+}
+>>>>>>> e59180fff1f8226a68798479671db30988a5b410
