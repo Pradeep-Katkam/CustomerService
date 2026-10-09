@@ -81,15 +81,7 @@ public class CustomerController {
 		return customerService.updateBookingStatus(bookingid, status);
 	}
 
-<<<<<<< HEAD
-	
-	@PutMapping("customer/cancelRide")
-	public void CancelRide(@RequestParam int bookingid ) {
-		customerService.CancelRide(bookingid);
-	}
-	
-} 
-=======
+
 	@PutMapping("/customer/cancelRide")
 	public void CancelRide(@RequestParam int bookingid) {
 		customerService.CancelRide(bookingid);
@@ -101,4 +93,3 @@ public class CustomerController {
 	}
 
 }
->>>>>>> e59180fff1f8226a68798479671db30988a5b410

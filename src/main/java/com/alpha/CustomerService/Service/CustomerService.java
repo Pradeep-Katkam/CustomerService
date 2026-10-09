@@ -343,10 +343,7 @@ public class CustomerService {
 		r.setFare(b.getFare());
 		r.setStatus(b.getStatus());
 		r.setDestinationLoc(b.getDestinationLoc());
-<<<<<<< HEAD
-=======
 
->>>>>>> e59180fff1f8226a68798479671db30988a5b410
 		return r;
 	}
 
@@ -378,28 +375,6 @@ public class CustomerService {
 		response.setData(updatedBooking);
 		return response;
 	}
-
-<<<<<<< HEAD
-		public void CancelRide(int bookingid) {
-			Booking b = bookingRepository.findById(bookingid).orElseThrow(()-> new BookingObjectNotFoundException());
-			
-			ResponceStructure<Booking> rs = new ResponceStructure<Booking>();
-			if(b.getStatus().equalsIgnoreCase("confirmed") || b.getStatus().equalsIgnoreCase("riderAssigned")) {
-				b.setStatus("cancel");
-				bookingRepository.save(b);
-				rs.setStatusCode(HttpStatus.ACCEPTED.value());
-				rs.setMessage("Ride Successfully Cancelled");
-				rs.setData(b);
-			}else if(b.getStatus().equalsIgnoreCase("started")) {
-				System.out.println("Cannot Cancel Ride");
-				rs.setStatusCode(HttpStatus.UNPROCESSABLE_CONTENT.value());
-				rs.setMessage("Ride Cannot Cancelled, While you in Ride");
-				rs.setData(null);
-			}
-			
-			
-		}
-=======
 	public ResponceStructure<CompleteRideDTO> RideCompleted(int bookingid) {
 		// TODO Auto-generated method stub
 		Booking booking = bookingRepository.findById(bookingid).orElseThrow(() -> new BookingObjectNotFoundException());
@@ -421,5 +396,4 @@ public class CustomerService {
 		return responceStructure;
 
 	}
->>>>>>> e59180fff1f8226a68798479671db30988a5b410
 }
