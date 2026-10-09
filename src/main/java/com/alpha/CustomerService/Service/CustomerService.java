@@ -312,11 +312,11 @@ public class CustomerService {
 		System.out.println("Completed");
 		return rs;
 	}
-
+	
 	public ResponceStructure<Booking> saveRiderIdInBooking(int bookingId, int riderId) {
 		Booking booking = bookingRepository.findById(bookingId)
 				.orElseThrow(() -> new RuntimeException("Booking not found: " + bookingId));
-
+		booking.setStatus("Busy");
 		booking.setRiderId(riderId);
 		Booking b = bookingRepository.save(booking);
 
@@ -328,6 +328,7 @@ public class CustomerService {
 		return rs;
 	}
 
+	
 	public ReturningBookingObjectDto ReturningBookingObject(int bookingid) {
 		Booking b = bookingRepository.findById(bookingid).orElseThrow(() -> new BookingObjectNotFoundException());
 		ReturningBookingObjectDto r = new ReturningBookingObjectDto();
@@ -341,8 +342,6 @@ public class CustomerService {
 		r.setFare(b.getFare());
 		r.setStatus(b.getStatus());
 		r.setDestinationLoc(b.getDestinationLoc());
-
-<<<<<<< HEAD
 		return r;
 	}
 
@@ -356,23 +355,6 @@ public class CustomerService {
 		response.setData(updatedBooking);
 		return response;
 	}
-=======
-		public ReturningBookingObjectDto ReturningBookingObject(int bookingid) {
-			Booking b=bookingRepository.findById(bookingid).orElseThrow(()-> new BookingObjectNotFoundException());
-			ReturningBookingObjectDto r = new ReturningBookingObjectDto();
-			r.setDestinationLoc(b.getDestinationLoc());
-			r.setPickupLoc(b.getPickupLoc());
-			r.setDesCordinate(b.getDesCordinate());
-			r.setSourceCordinate(b.getSourceCordinate());
-			r.setRiderId(b.getRiderId());
-			r.setBookingdate(b.getBookingdate());
-			r.setDropTime(b.getDropTime());
-			r.setFare(b.getFare());
-			r.setStatus(b.getStatus());
-			r.setDestinationLoc(b.getDestinationLoc());
-			
-			return r;
-		}
 
 		public void CancelRide(int bookingid) {
 			Booking b = bookingRepository.findById(bookingid).orElseThrow(()-> new BookingObjectNotFoundException());
@@ -393,5 +375,4 @@ public class CustomerService {
 			
 			
 		}
->>>>>>> 47a140b5c6d561e3e2a6a80c6e6cf8392e73f3e0
 }
